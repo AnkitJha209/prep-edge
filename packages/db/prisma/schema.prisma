@@ -1,12 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -14,10 +7,165 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ----------------- ENUMS -----------------
+enum UserRole {
+  CANDIDATE
+  RECRUITER
+  ADMIN
+}
 
-model User{
-  id        String      @unique @default(uuid())
-  name      String
-  email     String      @unique
-  password  String
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  FREELANCE
+}
+
+enum JobStatus {
+  ACTIVE
+  INACTIVE
+  CLOSED
+  DRAFT
+}
+
+enum ApplicationStatus {
+  PENDING
+  REVIEWING
+  INTERVIEW_SCHEDULED
+  INTERVIEW_COMPLETED
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  REVIEWED
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum QuestionType {
+  TECHNICAL
+  BEHAVIORAL
+  PROBLEM_SOLVING
+  CULTURE_FIT
+  GENERAL
+}
+
+// ----------------- MODELS -----------------
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         UserRole @default(CANDIDATE)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  recruiterJobs         Job[]         @relation("RecruiterJobs")
+  candidateApplications Application[] @relation("CandidateApplications")
+  interviews            Interview[]   @relation("CandidateInterviews")
+
+  @@map("users")
+}
+
+model Job {
+  id           String    @id @default(cuid())
+  title        String
+  description  String
+  requirements String?
+  location     String?
+  salary       String?
+  type         JobType
+  status       JobStatus @default(ACTIVE)
+  recruiterId  String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  recruiter    User          @relation("RecruiterJobs", fields: [recruiterId], references: [id], onDelete: Cascade)
+  applications Application[] @relation("JobApplications")
+
+  @@map("jobs")
+}
+
+model Application {
+  id          String            @id @default(cuid())
+  candidateId String
+  jobId       String
+  resumeUrl   String
+  resumeScore Float?
+  status      ApplicationStatus @default(PENDING)
+  coverLetter String?
+  appliedAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  candidate   User       @relation("CandidateApplications", fields: [candidateId], references: [id], onDelete: Cascade)
+  job         Job        @relation("JobApplications", fields: [jobId], references: [id], onDelete: Cascade)
+  interview   Interview? @relation("ApplicationInterview")
+
+  @@unique([candidateId, jobId])
+  @@map("applications")
+}
+
+model Interview {
+  id            String          @id @default(cuid())
+  applicationId String          @unique
+  candidateId   String
+  sessionId     String          @unique
+  status        InterviewStatus @default(SCHEDULED)
+  scheduledAt   DateTime
+  startedAt     DateTime?
+  completedAt   DateTime?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Relations
+  application Application         @relation("ApplicationInterview", fields: [applicationId], references: [id], onDelete: Cascade)
+  candidate   User                @relation("CandidateInterviews", fields: [candidateId], references: [id])
+  questions   InterviewQuestion[]
+  report      InterviewReport?
+
+  @@map("interviews")
+}
+
+model InterviewQuestion {
+  id           String       @id @default(cuid())
+  interviewId  String
+  questionText String
+  questionType QuestionType
+  answerText   String?
+  answerAudio  String?
+  aiEvaluation Json? // per-question AI feedback
+  orderIndex   Int
+  createdAt    DateTime     @default(now())
+
+  // Relations
+  interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  @@map("interview_questions")
+}
+
+model InterviewReport {
+  id               String     @id @default(cuid())
+  interviewId      String     @unique
+  summary          String
+  strengths        String?
+  weaknesses       String?
+  overallScore     Float?
+  aiRecommendation String?
+  createdAt        DateTime   @default(now())
+
+  // Relations
+  interview Interview @relation(fields: [interviewId], references: [id])
+
+  @@map("interview_reports")
 }
