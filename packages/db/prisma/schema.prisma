@@ -39,6 +39,7 @@ enum ApplicationStatus {
   WITHDRAWN
 }
 
+
 enum InterviewStatus {
   SCHEDULED
   IN_PROGRESS
