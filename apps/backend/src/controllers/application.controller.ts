@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { analyzeTheApplication } from "../utils/analyzeResume";
 import { ingestResume } from "../utils/ingestion";
+import { client } from "@repo/db/client";
 
 export const createApplication = async (req: Request, res: Response) => {
     try {
@@ -29,12 +30,26 @@ export const createApplication = async (req: Request, res: Response) => {
             })
             return
         }
+
+        const application = await client.application.create({
+            data: {
+                candidateId: id,
+                jobId,
+                resumeUrl,
+                resumeScore: analysis?.analysis.matchScore,
+            }
+        })
         res.status(200).json({
             success: true,
             message: "Proceed for the interview",
-            analysis
+            analysis,
+            application
         })
     } catch (error) {
-        
+        console.log(error)
+        res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        })
     }
 }

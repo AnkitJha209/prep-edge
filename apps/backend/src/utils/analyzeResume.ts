@@ -28,22 +28,22 @@ export const analyzeTheApplication = async (jobId: string, fileName: string ) =>
 
         // 3️⃣ Prepare AI prompt
         const systemPrompt = `
-        You are an expert recruitment assistant.
-        Analyze a candidate's resume against a job description.
-        Provide:
-        1. Match score (0-100)
-        2. Strengths (skills matched)
-        3. Missing skills / gaps
-        4. Feedback for candidate improvement
-        `;
+            You are an expert recruitment assistant.
+            Analyze a candidate's resume against a job description.
+            Provide:
+            1. Match score (0-100)
+            2. Strengths (skills matched)
+            3. Missing skills / gaps
+            4. Feedback for candidate improvement
+            `;
 
-        const userPrompt = `
-            Job Description:
-            ${job}
+            const userPrompt = `
+                Job Description:
+                ${job}
 
-            Candidate Resume:
-            ${resumeText}
-        `;
+                Candidate Resume:
+                ${resumeText}
+            `;
 
         // 4️⃣ Call AI for analysis
         const response = await client_ai.chat.completions.create({
