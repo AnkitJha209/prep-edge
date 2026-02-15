@@ -27,13 +27,15 @@ export const createApplication = async (req: Request, res: Response) => {
                 resumeUrl:fileUrl,
                 resumeScore,
                 strengths, 
-                misingSkills: missingSkills, 
-                experienceGap : experienceGaps, 
+                missingSkills, 
+                experienceGaps, 
                 improvementSuggestion, 
                 overallAssessment, 
                 scoreJustification
             }
         })
+
+        
         res.status(200).json({
             success: true,
             message: "Proceed for the interview",

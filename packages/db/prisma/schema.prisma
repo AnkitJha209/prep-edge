@@ -106,8 +106,8 @@ model Application {
   coverLetter               String?
   scoreJustification        String?
   strengths                 String[]
-  misingSkills              String
-  experienceGap             String[]
+  missingSkills             Json?
+  experienceGaps            String[]
   improvementSuggestion     String[]
   overallAssessment         String?
   appliedAt                 DateTime          @default(now())

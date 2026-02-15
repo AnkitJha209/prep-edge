@@ -21,6 +21,6 @@ app.use('/api/v1', resumeRouter)
 app.use('/api/v1', jobRouter)
 app.use('/api/v1', applicationRouter)
 
-app.listen(8080, () => {
+app.listen(8080, "0.0.0.0", () => {
     console.log(`Server is running http://localhost:8080`)
 })
