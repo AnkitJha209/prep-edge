@@ -144,7 +144,6 @@ model InterviewQuestion {
   questionText String
   questionType QuestionType
   answerText   String?
-  answerAudio  String?
   aiEvaluation Json? // per-question AI feedback
   orderIndex   Int
   createdAt    DateTime     @default(now())
