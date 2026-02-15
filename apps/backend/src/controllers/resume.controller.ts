@@ -29,7 +29,7 @@ export const resumeUpload = async (req:Request, res:Response) => {
         const fileUrl = await pdfUpload(pdfBuffer)
 
         // so here we can analyze the resume and can give score to the resume as well 
-        const result = analyzeTheApplication(jobId, fileUrl)
+        const result = await analyzeTheApplication(jobId, fileUrl)
 
         res.status(200).json({
             success: true,

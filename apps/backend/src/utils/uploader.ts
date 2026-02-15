@@ -23,9 +23,5 @@ export const pdfUpload = async (pdfBuffer: Buffer) => {
             blobContentType: 'application/pdf'
         }
     })
-    const response = {
-        fileName,
-        fileUrl : blockBlobClient.url
-    }
     return blockBlobClient.url
 }

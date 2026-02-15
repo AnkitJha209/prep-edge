@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import { analyzeTheApplication } from "../utils/analyzeResume";
 import { client } from "@repo/db/client";
 
 export const createApplication = async (req: Request, res: Response) => {
@@ -34,3 +33,5 @@ export const createApplication = async (req: Request, res: Response) => {
         })
     }
 }
+
+

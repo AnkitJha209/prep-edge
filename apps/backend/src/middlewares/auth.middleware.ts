@@ -1,9 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from 'jsonwebtoken'
+// import { decode } from "punycode";
 
 export const verifyToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const token = req.cookies("token") || req.headers.authorization?.split(' ')[1] 
+        const token = req.headers.authorization?.split(' ')[1] 
         if(!token){
             res.status(404).json({
                 success:false,
@@ -11,13 +12,10 @@ export const verifyToken = async (req: Request, res: Response, next: NextFunctio
             })
             return
         }
-        if(!process.env.JWT_SECRET){
-            return
-        }
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || "SECRET") as JwtPayload
         
-        (req as any).user(decoded)
+        (req as any).user = decoded
         next()
     } catch (error) {
         console.log(error)
@@ -82,7 +80,7 @@ export const verifyCANDIDATE = async (req: Request, res: Response, next: NextFun
         console.log(error)
         res.status(500).json({
             success: false,
-            message: "Internal server error"
+            message: "Hello there"
         })
     }
 }

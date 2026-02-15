@@ -8,7 +8,7 @@ dotenv.config()
 
 export const signUp = async (req:Request, res: Response) => {
     try {
-        const {email, password, firstName, lastName} = req.body
+        const {email, password, firstName, lastName, role} = req.body
         if(!email || !password || !firstName || !lastName){
             res.status(400).json({
                 success: false,
@@ -33,7 +33,7 @@ export const signUp = async (req:Request, res: Response) => {
                 lastName,
                 email,
                 passwordHash,
-                role: "ADMIN"
+                role: role ? role : "CANDIDATE"
             }
         })
         res.status(201).json({
@@ -78,13 +78,10 @@ export const signIn = async (req: Request, res: Response) => {
                 email: userExist.email,
                 role: userExist.role
             }
-            if(!process.env.JWT_SECRET){
-                return
-            }
-            const token = jwt.sign(payload, process.env.JWT_SECRET, {
+            const token = jwt.sign(payload, process.env.JWT_SECRET || "SECRET", {
                 expiresIn: '30d'
             })
-            res.status(200).cookie("token",token, {maxAge:900000,httpOnly:false}).json({
+            res.status(200).cookie("token",token, {maxAge: 24 * 60 * 60 * 1000,httpOnly:false}).json({
                 success: true,
                 message: "User signed in successfully",
                 token

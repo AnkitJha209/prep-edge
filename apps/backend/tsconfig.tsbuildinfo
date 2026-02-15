@@ -1,1 +1,1 @@
-{"root":["./src/index.ts"],"version":"5.9.2"}
+{"root":["./src/index.ts","./src/controllers/application.controller.ts","./src/controllers/auth.controller.ts","./src/controllers/job.controller.ts","./src/controllers/resume.controller.ts","./src/middlewares/auth.middleware.ts","./src/routes/application.routes.ts","./src/routes/auth.routes.ts","./src/routes/job.routes.ts","./src/routes/resume.routes.ts","./src/utils/analyzeresume.ts","./src/utils/uploader.ts"],"version":"5.9.2"}

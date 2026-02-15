@@ -1,6 +1,6 @@
 import { client } from "@repo/db/client";
 import { OpenAI } from "openai";
-import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
+import {PDFParse} from "pdf-parse";
 
 const client_ai = new OpenAI({
     apiKey: process.env.GEMINI_API_KEY,
@@ -8,7 +8,7 @@ const client_ai = new OpenAI({
 });
 export const analyzeTheApplication = async (jobId: string, fileUrl: string) => {
     try {
-        const job = await client.job.findUnique({
+        const job = await client.job.findFirst({
             where: {
                 id: jobId,
             },
@@ -16,12 +16,8 @@ export const analyzeTheApplication = async (jobId: string, fileUrl: string) => {
         if (!job) {
             return "No job found";
         }
-
-        const loader = new PDFLoader(fileUrl);
-        const doc = await loader.load();
-
-        const parsedResume = doc.map((d) => d.pageContent).join("\n");
-
+        const parser = new PDFParse({url: fileUrl})
+        const parsedResume =await parser.getText();
         const systemPrompt = `
             You are a senior technical recruitment analyst with expertise in resume screening and ATS evaluation.
 
@@ -65,15 +61,17 @@ export const analyzeTheApplication = async (jobId: string, fileUrl: string) => {
 
         const userPrompt = `
             Job Description:
-            ${job}
+            Title: ${job.title}
+            Description: ${job.description}
+            Requirements: ${job.requirements}
 
             Candidate Resume:
-            ${parsedResume}
+            ${parsedResume.text}
         `;
 
-        // 4️⃣ Call AI for analysis
+
         const response = await client_ai.chat.completions.create({
-            model: "gemini-2.0-flash",
+            model: "gemini-3-flash-preview",
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt },
@@ -81,7 +79,7 @@ export const analyzeTheApplication = async (jobId: string, fileUrl: string) => {
         });
 
         const analysis = response.choices[0]?.message.content as string;
-
+        await parser.destroy();
         return {
             success: true,
             jobId,
