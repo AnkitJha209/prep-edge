@@ -3,7 +3,7 @@ import { client } from "@repo/db/client";
 
 export const createApplication = async (req: Request, res: Response) => {
     try {
-        const {jobId, fileUrl, resumeScore} = req.body
+        const {jobId, fileUrl, resumeScore, strengths, missingSkills, experienceGaps, improvementSuggestion, overallAssessment, scoreJustification} = req.body
         const {id} = (req as any).user
         if(!jobId || !fileUrl){
             res.status(400).json({
@@ -12,12 +12,26 @@ export const createApplication = async (req: Request, res: Response) => {
             })
         }
 
+        if(resumeScore < 65){
+            res.status(401).json({
+                success: false,
+                message: "Cannot apply due to low score of resume"
+            })
+            return
+        }
+
         const application = await client.application.create({
             data: {
                 candidateId: id,
                 jobId,
                 resumeUrl:fileUrl,
-                resumeScore
+                resumeScore,
+                strengths, 
+                misingSkills: missingSkills, 
+                experienceGap : experienceGaps, 
+                improvementSuggestion, 
+                overallAssessment, 
+                scoreJustification
             }
         })
         res.status(200).json({

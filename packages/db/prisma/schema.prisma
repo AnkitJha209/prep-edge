@@ -60,57 +60,63 @@ enum QuestionType {
 
 // ----------------- MODELS -----------------
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  firstName    String
-  lastName     String
-  role         UserRole @default(CANDIDATE)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                        String   @id @default(cuid())
+  email                     String   @unique
+  passwordHash              String
+  firstName                 String
+  lastName                  String
+  role                      UserRole @default(CANDIDATE)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
 
   // Relations
-  recruiterJobs         Job[]         @relation("RecruiterJobs")
-  candidateApplications Application[] @relation("CandidateApplications")
-  interviews            Interview[]   @relation("CandidateInterviews")
+  recruiterJobs             Job[]         @relation("RecruiterJobs")
+  candidateApplications     Application[] @relation("CandidateApplications")
+  interviews                Interview[]   @relation("CandidateInterviews")
 
   @@map("users")
 }
 
 model Job {
-  id           String    @id @default(cuid())
-  title        String
-  description  String
-  requirements String?
-  location     String?
-  salary       String?
-  type         JobType
-  status       JobStatus @default(ACTIVE)
-  recruiterId  String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                        String    @id @default(cuid())
+  title                     String
+  description               String
+  requirements              String[]
+  salary                    String?
+  location                  String?
+  type                      JobType
+  status                    JobStatus @default(ACTIVE)
+  recruiterId               String
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
   // Relations
-  recruiter    User          @relation("RecruiterJobs", fields: [recruiterId], references: [id], onDelete: Cascade)
-  applications Application[] @relation("JobApplications")
+  applications              Application[] @relation("JobApplications")
+  recruiter                 User          @relation("RecruiterJobs", fields: [recruiterId], references: [id], onDelete: Cascade)
 
   @@map("jobs")
 }
 
 model Application {
-  id          String            @id @default(cuid())
-  candidateId String
-  jobId       String
-  resumeUrl   String
-  resumeScore Float?
-  status      ApplicationStatus @default(PENDING)
-  coverLetter String?
-  appliedAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  candidateId               String
+  id                        String            @id @default(cuid())
+  jobId                     String
+  resumeUrl                 String
+  resumeScore               Float?
+  status                    ApplicationStatus @default(PENDING)
+  coverLetter               String?
+  scoreJustification        String?
+  strengths                 String[]
+  misingSkills              String
+  experienceGap             String[]
+  improvementSuggestion     String[]
+  overallAssessment         String?
+  appliedAt                 DateTime          @default(now())
+  updatedAt                 DateTime          @updatedAt
 
   // Relations
-  candidate   User       @relation("CandidateApplications", fields: [candidateId], references: [id], onDelete: Cascade)
-  job         Job        @relation("JobApplications", fields: [jobId], references: [id], onDelete: Cascade)
-  interview   Interview? @relation("ApplicationInterview")
+  candidate                 User       @relation("CandidateApplications", fields: [candidateId], references: [id], onDelete: Cascade)
+  job                       Job        @relation("JobApplications", fields: [jobId], references: [id], onDelete: Cascade)
+  interview                 Interview? @relation("ApplicationInterview")
 
   @@unique([candidateId, jobId])
   @@map("applications")
@@ -118,35 +124,35 @@ model Application {
 
 
 model Interview {
-  id            String          @id @default(cuid())
-  applicationId String          @unique
-  candidateId   String
-  sessionId     String          @unique
-  status        InterviewStatus @default(SCHEDULED)
-  scheduledAt   DateTime
-  startedAt     DateTime?
-  completedAt   DateTime?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id                          String          @id @default(cuid())
+  applicationId               String          @unique
+  candidateId                 String
+  sessionId                   String          @unique
+  status                      InterviewStatus @default(SCHEDULED)
+  scheduledAt                 DateTime
+  startedAt                   DateTime?
+  completedAt                 DateTime?
+  createdAt                   DateTime        @default(now())
+  updatedAt                   DateTime        @updatedAt
 
   // Relations
-  application Application         @relation("ApplicationInterview", fields: [applicationId], references: [id], onDelete: Cascade)
-  candidate   User                @relation("CandidateInterviews", fields: [candidateId], references: [id])
-  questions   InterviewQuestion[]
-  report      InterviewReport?
+  application                 Application         @relation("ApplicationInterview", fields: [applicationId], references: [id], onDelete: Cascade)
+  candidate                   User                @relation("CandidateInterviews", fields: [candidateId], references: [id])
+  questions                   InterviewQuestion[]
+  report                      InterviewReport?
 
   @@map("interviews")
 }
 
 model InterviewQuestion {
-  id           String       @id @default(cuid())
-  interviewId  String
-  questionText String
-  questionType QuestionType
-  answerText   String?
-  aiEvaluation Json? // per-question AI feedback
-  orderIndex   Int
-  createdAt    DateTime     @default(now())
+  id                          String       @id @default(cuid())
+  interviewId                 String
+  questionText                String
+  questionType                QuestionType
+  answerText                  String?
+  aiEvaluation                Json? // per-question AI feedback
+  orderIndex                  Int
+  createdAt                   DateTime     @default(now())
 
   // Relations
   interview Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
@@ -155,14 +161,14 @@ model InterviewQuestion {
 }
 
 model InterviewReport {
-  id               String     @id @default(cuid())
-  interviewId      String     @unique
-  summary          String
-  strengths        String?
-  weaknesses       String?
-  overallScore     Float?
-  aiRecommendation String?
-  createdAt        DateTime   @default(now())
+  id                          String     @id @default(cuid())
+  interviewId                 String     @unique
+  summary                     String
+  strengths                   String?
+  weaknesses                  String?
+  overallScore                Float?
+  aiRecommendation            String?
+  createdAt                   DateTime   @default(now())
 
   // Relations
   interview Interview @relation(fields: [interviewId], references: [id])
