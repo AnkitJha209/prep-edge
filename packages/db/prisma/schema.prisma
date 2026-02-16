@@ -129,7 +129,7 @@ model Interview {
   candidateId                 String
   sessionId                   String          @unique
   status                      InterviewStatus @default(SCHEDULED)
-  scheduledAt                 DateTime
+  scheduledAt                 DateTime?
   startedAt                   DateTime?
   completedAt                 DateTime?
   createdAt                   DateTime        @default(now())

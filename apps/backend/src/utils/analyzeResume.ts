@@ -34,7 +34,7 @@ export const analyzeTheApplication = async (jobId: string, fileUrl: string) => {
             Return your response STRICTLY in the following JSON format:
 
             {
-            "matchScore": number,                // 0–100
+            "resumeScore": number,                // 0–100
             "scoreJustification": string,        // 2–3 concise lines
             "strengths": [
                 string
