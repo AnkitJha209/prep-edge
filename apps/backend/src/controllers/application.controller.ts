@@ -1,5 +1,6 @@
-import { Request, Response } from "express";
 import { client } from "@repo/db/client";
+import { Request, Response } from "express";
+// import { client } from "@repo/db/client";
 
 export const createApplication = async (req: Request, res: Response) => {
     try {
