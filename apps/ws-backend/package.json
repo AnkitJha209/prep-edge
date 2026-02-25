@@ -10,9 +10,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.36.0",
     "@repo/db": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "jsonwebtoken": "^9.0.2",
+    "openai": "^5.23.1",
     "ws": "^8.18.3"
   },
   "devDependencies": {

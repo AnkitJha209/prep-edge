@@ -1,4 +1,15 @@
-export const greetApplicant = async (userData: any, jobData: any, interviewData: any) => {
+import OpenAI from "openai";
+
+export const openai = new OpenAI({
+    apiKey: process.env.GEMINI_API_KEY,
+    baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
+});
+
+export const greetApplicant = async (
+    userData: any,
+    jobData: any,
+    interviewData: any,
+) => {
     try {
         const greetingPrompt = `
             You are an AI technical interviewer conducting a live job interview.
@@ -56,9 +67,34 @@ export const greetApplicant = async (userData: any, jobData: any, interviewData:
             End by clearly asking the candidate to introduce themselves.
             `;
 
-        
+        const response = await openai.chat.completions.create({
+            model: "gemini-1.5-flash",
+            temperature: 0.7,
+            max_tokens: 300,
+            messages: [
+                {
+                    role: "system",
+                    content:
+                        "You are a professional AI interviewer. Respond in clean spoken plain text only. Do not use markdown, bullet points, symbols, or formatting.",
+                },
+                {
+                    role: "user",
+                    content: greetingPrompt,
+                },
+            ],
+        });
+
+        const rawText = response?.choices?.[0]?.message?.content;
+
+        if (!rawText) {
+            throw new Error("No response text from Gemini");
+        }
+
+        const text = rawText.replace(/[*#"`]/g, "").trim();
+
+        return text || "Welcome to the interview. Please introduce yourself."
     } catch (error) {
-        console.log(error)
-        return 'Error while greeting'
+        console.log(error);
+        return "Error while greeting";
     }
-}
+};

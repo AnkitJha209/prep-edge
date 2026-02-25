@@ -23,6 +23,9 @@ importers:
       '@azure/storage-blob':
         specifier: ^12.28.0
         version: 12.31.0
+      '@elevenlabs/elevenlabs-js':
+        specifier: ^2.36.0
+        version: 2.36.0
       '@langchain/community':
         specifier: ^0.3.56
         version: 0.3.59(@azure/storage-blob@12.31.0)(@browserbasehq/sdk@2.6.0)(@browserbasehq/stagehand@1.14.0(@playwright/test@1.58.2)(deepmerge@4.3.1)(dotenv@17.3.1)(openai@5.23.2(ws@8.19.0)(zod@3.25.76))(zod@3.25.76))(@ibm-cloud/watsonx-ai@1.7.7)(@langchain/core@0.3.80(openai@5.23.2(ws@8.19.0)(zod@3.25.76)))(@langchain/google-genai@0.2.18(@langchain/core@0.3.80(openai@5.23.2(ws@8.19.0)(zod@3.25.76))))(@qdrant/js-client-rest@1.16.2(typescript@5.9.3))(axios@1.13.5)(fast-xml-parser@5.3.6)(ibm-cloud-sdk-core@5.4.6)(ignore@7.0.5)(jsonwebtoken@9.0.3)(lodash@4.17.23)(openai@5.23.2(ws@8.19.0)(zod@3.25.76))(pdf-parse@2.4.5)(playwright@1.58.2)(weaviate-client@3.11.0)(ws@8.19.0)
@@ -205,6 +208,9 @@ importers:
 
   apps/ws-backend:
     dependencies:
+      '@elevenlabs/elevenlabs-js':
+        specifier: ^2.36.0
+        version: 2.36.0
       '@repo/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -214,6 +220,9 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.3
+      openai:
+        specifier: ^5.23.1
+        version: 5.23.2(ws@8.19.0)(zod@4.3.6)
       ws:
         specifier: ^8.18.3
         version: 8.19.0
@@ -567,6 +576,10 @@ packages:
     engines: {bun: '>=1', deno: '>=2', node: '>=16'}
     peerDependencies:
       '@noble/ciphers': ^1.0.0
+
+  '@elevenlabs/elevenlabs-js@2.36.0':
+    resolution: {integrity: sha512-dnhJHmozQj2xBxgEbPa3clK1G3jY8xUmij8nzNHW9GBDYg2750OwgaSCnZmlFtm53MorEspmlcSu2+fzSeldkQ==}
+    engines: {node: '>=18.0.0'}
 
   '@esbuild/aix-ppc64@0.27.3':
     resolution: {integrity: sha512-9fJMTNFTWZMh5qwrBItuziu834eOCUcEqymSH7pY+zoMVEZg3gcPuBNxH1EvfVYe9h0x/Ptw8KBzv7qxb7l8dg==}
@@ -2898,6 +2911,9 @@ packages:
   combined-stream@1.0.8:
     resolution: {integrity: sha512-FQN4MRfuJeHf7cBbBMJFXhKSDq+2kAArBlmRBvcvFE5BB1HZKXtSFASDhdlz9zOYwxh8lDdnvmMOe/+5cdoEdg==}
     engines: {node: '>= 0.8'}
+
+  command-exists@1.2.9:
+    resolution: {integrity: sha512-LTQ/SGc+s0Xc0Fu5WaKnR0YiygZkm9eKFvyS+fRsU7/ZWFF8ykFM6Pc9aCVf1+xasOOZpO3BAVgVrKvsqKHV7w==}
 
   commander@11.1.0:
     resolution: {integrity: sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ==}
@@ -5905,6 +5921,16 @@ snapshots:
     dependencies:
       '@noble/ciphers': 1.3.0
 
+  '@elevenlabs/elevenlabs-js@2.36.0':
+    dependencies:
+      command-exists: 1.2.9
+      node-fetch: 2.7.0
+      ws: 8.19.0
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - utf-8-validate
+
   '@esbuild/aix-ppc64@0.27.3':
     optional: true
 
@@ -7997,6 +8023,8 @@ snapshots:
     dependencies:
       delayed-stream: 1.0.0
 
+  command-exists@1.2.9: {}
+
   commander@11.1.0: {}
 
   commander@14.0.3: {}
@@ -9549,6 +9577,11 @@ snapshots:
     optionalDependencies:
       ws: 8.19.0
       zod: 3.25.76
+
+  openai@5.23.2(ws@8.19.0)(zod@4.3.6):
+    optionalDependencies:
+      ws: 8.19.0
+      zod: 4.3.6
 
   openapi-types@12.1.3: {}
 
