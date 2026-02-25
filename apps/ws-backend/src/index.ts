@@ -6,7 +6,7 @@ import { greetApplicant } from "./utils/greetApplicant";
 import { textToSpeech } from "./utils/elevenLabs";
 import { saveToDB } from "./utils/saveToDB";
 import { handleUserAnswer } from "./utils/userAnswer";
-// import { client } from "@repo/db/client";
+import { createReport } from "./utils/reportCreation";
 
 const wss = new WebSocketServer({ port: 8080, path: "/api/v1/interview" });
 
@@ -20,6 +20,11 @@ wss.on("connection", async function connection(ws, request) {
     const token = queryParams.get("token") || "";
     const { userId, interviewId, jobId } = checkUser(token) as JwtPayload;
 
+    if (!userId || !interviewId || !jobId) {
+        ws.close();
+        return;
+    }
+
     // bring all the data here for the convience and can be send to function required
     const userData = await client.user.findFirst({
         where: { id: userId },
@@ -29,8 +34,9 @@ wss.on("connection", async function connection(ws, request) {
         where: { id: jobId },
     });
 
-    const interivewData = await client.interview.findFirst({
+    const interivewData = await client.interview.update({
         where: { id: interviewId },
+        data:{status:"IN_PROGRESS"},
         include: { application: true },
     });
 
@@ -92,12 +98,23 @@ wss.on("connection", async function connection(ws, request) {
                     }
 
                     case "ANSWER_FROM_USER": {
+                        if (currentQuestionId) return;
                         currentQuestionId = payload.questionId;
                         break;
                     }
 
-                    case "END_INTERVIEW" : {
-                        createReport(interviewId)
+                    case "END_INTERVIEW": {
+                        await createReport(interviewId, jobData, userData);
+                        ws.send(
+                            JSON.stringify({
+                                type: "AI_MESSAGE_END",
+                                message: "Report Created Successfully",
+                            }),
+                        );
+
+                        ws.close();
+
+                        break;
                     }
                 }
             }
@@ -120,5 +137,17 @@ wss.on("connection", async function connection(ws, request) {
         } catch (error) {
             console.error("WS ERROR:", error);
         }
+    });
+
+    ws.on("close", async () => {
+        console.log("User disconnected");
+
+        await client.interview.update({
+            where: {id: interviewId},
+            data: {
+                status: "CANCELLED"
+            }
+        })
+        // Optional: mark interview incomplete
     });
 });

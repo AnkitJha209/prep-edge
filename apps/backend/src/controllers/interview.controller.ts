@@ -69,3 +69,67 @@ export const createInterview = async (req: Request, res: Response) => {
         return 
     }
 }
+
+export const getInterviewReport = async (req: Request, res: Response) => {
+  try {
+    const { reportId } = req.params;
+    const id = reportId as string
+    const loggedInUserId = (req as any).user?.id;
+
+    if (!loggedInUserId) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized",
+      });
+    }
+
+    // Fetch report with deep relations
+    const report = await client.interviewReport.findUnique({
+      where: { id},
+      include: {
+        interview: {
+          include: {
+            application: {
+              include: {
+                job: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!report) {
+      return res.status(404).json({
+        success: false,
+        message: "Report not found",
+      });
+    }
+
+    const candidateId = report.interview.candidateId;
+    const recruiterId = report.interview.application.job.recruiterId;
+
+    // Authorization check
+    const isCandidate = candidateId === loggedInUserId;
+    const isRecruiter = recruiterId === loggedInUserId;
+
+    if (!isCandidate && !isRecruiter) {
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: You do not have access to this report",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: report,
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
