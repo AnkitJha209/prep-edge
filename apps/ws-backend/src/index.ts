@@ -129,6 +129,8 @@ wss.on("connection", async function connection(ws, request) {
                     audioBuffer,
                     currentQuestionId,
                     interviewId,
+                    jobData,
+                    interivewData.application,
                     ws,
                 );
 

@@ -7,6 +7,8 @@ export const handleUserAnswer = async (
     audioBuffer: Buffer,
     questionId: string,
     interviewId: string,
+    jobData: any,
+    application: any,
     ws: any,
 ) => {
     const answerText = await speechToText(audioBuffer);
@@ -14,6 +16,9 @@ export const handleUserAnswer = async (
     // 3️⃣ Evaluate answer + generate next question
     const { feedback, nextQuestion } = await evaluateAnswerAndGenerateNext(
         answerText,
+        jobData,
+        application,
+        interviewId,
         questionId,
     );
 
