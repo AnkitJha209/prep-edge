@@ -24,7 +24,6 @@ export const createReport = async (
 
         const report = await analyzeInterview(interview, jobData, userData);
 
-        // 2️⃣ Save to DB
         const savedReport = await client.interviewReport.create({
             data: {
                 interviewId,

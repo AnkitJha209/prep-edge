@@ -1,4 +1,6 @@
 import OpenAI from "openai";
+import dotenv from 'dotenv'
+dotenv.config()
 
 export const openai = new OpenAI({
     apiKey: process.env.GEMINI_API_KEY,
@@ -11,6 +13,8 @@ export const greetApplicant = async (
     interviewData: any,
 ) => {
     try {
+
+        console.log("Reached greet Applicant")
         const greetingPrompt = `
             You are an AI technical interviewer conducting a live job interview.
 
@@ -68,9 +72,8 @@ export const greetApplicant = async (
             `;
 
         const response = await openai.chat.completions.create({
-            model: "gemini-1.5-flash",
+            model: "gemini-3-flash-preview",
             temperature: 0.7,
-            max_tokens: 300,
             messages: [
                 {
                     role: "system",
@@ -90,8 +93,10 @@ export const greetApplicant = async (
             throw new Error("No response text from Gemini");
         }
 
-        const text = rawText.replace(/[*#"`]/g, "").trim();
+        console.log("Raw Text", rawText)
 
+        const text = rawText.replace(/[*#"`]/g, "").trim();
+        console.log(text)
         return text || "Welcome to the interview. Please introduce yourself."
     } catch (error) {
         console.log(error);

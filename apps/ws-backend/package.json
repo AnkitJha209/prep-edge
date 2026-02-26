@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "tsc -b && node ./dist/index.js"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +13,7 @@
     "@elevenlabs/elevenlabs-js": "^2.36.0",
     "@repo/db": "workspace:*",
     "@repo/typescript-config": "workspace:*",
+    "dotenv": "^17.2.2",
     "jsonwebtoken": "^9.0.2",
     "openai": "^5.23.1",
     "ws": "^8.18.3"

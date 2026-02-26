@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken'
 export const checkUser = (token: string) => {
     try {
-        const decode = jwt.verify(token, "JWT_SECRET")
+        const decode = jwt.verify(token, "INTERVIEW_SECRET")
         return decode
     } catch (error) {
         console.log(error)

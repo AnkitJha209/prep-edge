@@ -21,8 +21,8 @@ export const textToSpeech = async (greetingText: string) => {
 
 export const speechToText = async (audioBuffer: any) => {
     try {
-        const audioBlob = new Blob([await audioBuffer.arrayBuffer()], {
-            type: "audio/mp3",
+        const audioBlob = new Blob([await audioBuffer], {
+            type: "audio/webm",
         });
         const transcription = await elevenlabs.speechToText.convert({
             file: audioBlob,

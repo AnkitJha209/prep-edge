@@ -18,7 +18,7 @@ export const evaluateAnswerAndGenerateNext = async (
         })
 
         const response = await openai.chat.completions.create({
-            model: "gemini-1.5-flash",
+            model: "gemini-3-flash-preview",
             temperature: 0.3,
             messages: [
                 {
@@ -109,7 +109,6 @@ export const analyzeInterview = async (
     userData: any,
 ) => {
     try {
-        // 1️⃣ Structure interview transcript
         const conversation = interview.questions
             .map((q: any, index: number) => {
                 return `
@@ -120,9 +119,8 @@ export const analyzeInterview = async (
             })
             .join("\n");
 
-        // 2️⃣ Call LLM
         const response: any = await openai.chat.completions.create({
-            model: "gemini-1.5-flash", // or gemini-1.5-flash if using gemini
+            model: "gemini-3-flash-preview",
             temperature: 0.2,
             messages: [
                 {
@@ -178,7 +176,6 @@ export const analyzeInterview = async (
             throw new Error("Empty AI response");
         }
 
-        // 3️⃣ Parse JSON safely
         const report = JSON.parse(content);
 
         return report;

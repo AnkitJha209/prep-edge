@@ -5,8 +5,8 @@ export const saveToDB = async (
     interviewId: string,
 ) => {
     try {
-        // Check interview exists
-        const interview = await client.interview.findUnique({
+        console.log('Reached Save to DB')
+        const interview = await client.interview.findFirst({
             where: { id: interviewId },
             select: { id: true },
         });

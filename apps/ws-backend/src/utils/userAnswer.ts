@@ -11,9 +11,9 @@ export const handleUserAnswer = async (
     application: any,
     ws: any,
 ) => {
+    console.log("Reached handleUserAnswer")
     const answerText = await speechToText(audioBuffer);
-
-    // 3️⃣ Evaluate answer + generate next question
+    console.log(answerText)
     const { feedback, nextQuestion } = await evaluateAnswerAndGenerateNext(
         answerText,
         jobData,
@@ -22,7 +22,6 @@ export const handleUserAnswer = async (
         questionId,
     );
 
-    // 4️⃣ Save evaluation
     await client.interviewQuestion.update({
         where: { id: questionId },
         data: {
@@ -32,11 +31,8 @@ export const handleUserAnswer = async (
     });
 
     const newQuestionId = await saveToDB(nextQuestion, interviewId);
-
-    // 6️⃣ Convert next question → speech
     const speech = await textToSpeech(nextQuestion);
 
-    // 7️⃣ Send to frontend
     ws.send(
         JSON.stringify({
             type: "AI_MESSAGE_START",
