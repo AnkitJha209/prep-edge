@@ -1,0 +1,163 @@
+import { useQuery } from "@tanstack/react-query";
+import { dashboardApi } from "@/lib/api";
+import type { RecruiterDashboard as RDashboard } from "@/types";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+    Briefcase,
+    FileText,
+    Mic,
+    Users,
+    TrendingUp,
+    ArrowRight,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+
+export default function RecruiterDashboard() {
+    const { data, isLoading } = useQuery({
+        queryKey: ["dashboard", "recruiter"],
+        queryFn: async () => {
+            const res = await dashboardApi.recruiter();
+            return res.data.data as RDashboard;
+        },
+    });
+
+    if (isLoading) {
+        return (
+            <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+                <Skeleton className="mb-2 h-8 w-64" />
+                <Skeleton className="mb-8 h-4 w-48" />
+                <div className="grid gap-4 sm:grid-cols-4">
+                    {[1, 2, 3, 4].map((i) => (
+                        <Skeleton key={i} className="h-24 rounded-xl" />
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+            <div className="mb-8 flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold">Recruiter Dashboard</h1>
+                    <p className="mt-1 text-muted-foreground">
+                        Manage your jobs and review candidates
+                    </p>
+                </div>
+                <Link to="/recruiter/jobs/create">
+                    <Button className="gap-2">
+                        <Briefcase className="h-4 w-4" /> Post a Job
+                    </Button>
+                </Link>
+            </div>
+
+            {/* Stats */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <StatCard
+                    icon={Briefcase}
+                    label="Total Jobs"
+                    value={data?.totalJobs ?? 0}
+                />
+                <StatCard
+                    icon={TrendingUp}
+                    label="Active Jobs"
+                    value={data?.activeJobs ?? 0}
+                />
+                <StatCard
+                    icon={FileText}
+                    label="Applications"
+                    value={data?.totalApplications ?? 0}
+                />
+                <StatCard
+                    icon={Mic}
+                    label="Interviews"
+                    value={data?.totalInterviews ?? 0}
+                />
+            </div>
+
+            {/* Top Candidates */}
+            <div className="mt-10">
+                <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-xl font-semibold">Top Candidates</h2>
+                    <Link to="/recruiter/jobs">
+                        <Button variant="ghost" size="sm" className="gap-1">
+                            My Jobs <ArrowRight className="h-3.5 w-3.5" />
+                        </Button>
+                    </Link>
+                </div>
+                {data?.topCandidates && data.topCandidates.length > 0 ? (
+                    <div className="grid gap-3">
+                        {data.topCandidates.map((c) => (
+                            <Card
+                                key={c.id}
+                                className="border-border/50 bg-card/50"
+                            >
+                                <CardContent className="flex items-center justify-between p-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                                            <Users className="h-5 w-5 text-primary" />
+                                        </div>
+                                        <div>
+                                            <p className="font-medium">
+                                                {c.candidate?.firstName}{" "}
+                                                {c.candidate?.lastName}
+                                            </p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {c.candidate?.email}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="font-semibold text-primary">
+                                            {c.resumeScore != null
+                                                ? `${Math.round(c.resumeScore)}%`
+                                                : "N/A"}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {c.job?.title}
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                ) : (
+                    <Card className="border-border/50 bg-card/30">
+                        <CardContent className="flex flex-col items-center justify-center py-12">
+                            <Users className="mb-3 h-10 w-10 text-muted-foreground/50" />
+                            <p className="text-muted-foreground">
+                                No candidates yet
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function StatCard({
+    icon: Icon,
+    label,
+    value,
+}: {
+    icon: any;
+    label: string;
+    value: number;
+}) {
+    return (
+        <Card className="border-border/50 bg-card/50">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                    {label}
+                </CardTitle>
+                <Icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{value}</div>
+            </CardContent>
+        </Card>
+    );
+}
