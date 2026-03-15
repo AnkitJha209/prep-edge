@@ -45,6 +45,10 @@ export default function InterviewRoom() {
     const wsRef = useRef<WebSocket | null>(null);
     const audioContextRef = useRef<AudioContext | null>(null);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const cameraStreamRef = useRef<MediaStream | null>(null);
+    const [cameraOn, setCameraOn] = useState(false);
     const audioChunksRef = useRef<Blob[]>([]);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -53,6 +57,8 @@ export default function InterviewRoom() {
     const [connected, setConnected] = useState(false);
     const [preparingContext, setPreparingContext] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(180);
+    
 
     // Streaming typewriter state
     const [streamingMsgId, setStreamingMsgId] = useState<string | null>(null);
@@ -84,6 +90,25 @@ export default function InterviewRoom() {
             dispatch(resetInterview());
         };
     }, [dispatch]);
+
+    // Free tier timer (3 minutes)
+useEffect(() => {
+    if (!isInterviewActive) return;
+
+    const timer = setInterval(() => {
+        setTimeLeft((prev) => {
+            if (prev <= 1) {
+                handleEndInterview();
+                toast.warning("Interview time limit reached");
+                return 0;
+            }
+            return prev - 1;
+        });
+    }, 1000);
+
+    return () => clearInterval(timer);
+}, [isInterviewActive]);
+
 
     const playAudioBuffer = useCallback(async (buffer: ArrayBuffer) => {
         try {
@@ -408,6 +433,31 @@ export default function InterviewRoom() {
         }
     }, [currentQuestionId, dispatch]);
 
+    const toggleCamera = async () => {
+    if (cameraOn) {
+        cameraStreamRef.current?.getTracks().forEach(t => t.stop());
+        cameraStreamRef.current = null;
+        setCameraOn(false);
+        return;
+    }
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+        });
+
+        cameraStreamRef.current = stream;
+
+        if (videoRef.current) {
+            videoRef.current.srcObject = stream;
+        }
+
+        setCameraOn(true);
+    } catch {
+        toast.error("Camera access denied");
+    }
+};
+
     const stopRecording = useCallback(() => {
         mediaRecorderRef.current?.stop();
     }, []);
@@ -438,11 +488,11 @@ export default function InterviewRoom() {
 
     return (
         <div
-            className="mx-auto flex max-w-4xl flex-col px-4 py-6 sm:px-6"
+            className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 sm:px-6"
             style={{ height: "calc(100vh - 4rem)" }}
         >
             {/* Header */}
-            <div className="mb-4 flex items-center justify-between">
+            <div className="flex shrink-0 items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                         <Bot className="h-5 w-5 text-primary" />
@@ -459,6 +509,10 @@ export default function InterviewRoom() {
                                     : connected
                                       ? "Live"
                                       : "Disconnected"}
+                            </Badge>
+                             <Badge variant="outline" className="text-xs">
+                                {Math.floor(timeLeft / 60)}:
+                                {String(timeLeft % 60).padStart(2, "0")}
                             </Badge>
                             {isAiSpeaking && (
                                 <Badge
@@ -484,170 +538,206 @@ export default function InterviewRoom() {
                 )}
             </div>
 
-            {/* Messages */}
-            <Card className="flex-1 overflow-hidden border-border/50 bg-card/30">
-                <CardContent className="flex h-full flex-col p-0">
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                        {/* Pre-connect: Start button */}
-                        {!connected &&
-                            !isInterviewActive &&
-                            !preparingContext && (
+            {/* Main Layout Grid */}
+            <div className="grid flex-1 grid-cols-1 gap-4 overflow-y-auto md:grid-cols-3">
+                {/* AI Avatar Card */}
+                <Card className="flex flex-col items-center justify-center border-border/50 bg-card/30 p-6">
+                    <div className="flex h-48 w-48 items-center justify-center rounded-full bg-muted shadow-inner">
+                        <Bot className="h-24 w-24 text-primary" />
+                    </div>
+                    <p className="mt-6 text-lg font-medium">AI Interviewer</p>
+                </Card>
+
+                {/* Candidate Camera Card */}
+                <Card className="flex flex-col items-center justify-center border-border/50 bg-card/30 p-6">
+                    <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black shadow-inner ring-1 ring-border/50">
+                        <video
+                            ref={videoRef}
+                            autoPlay
+                            muted
+                            className="h-full w-full object-cover"
+                        />
+                        {!cameraOn && (
+                            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                                <span className="text-sm">Camera Off</span>
+                            </div>
+                        )}
+                    </div>
+
+                    <Button
+                        variant="outline"
+                        className="mt-6"
+                        onClick={toggleCamera}
+                    >
+                        {cameraOn ? "Turn Camera Off" : "Turn Camera On"}
+                    </Button>
+                </Card>
+
+                {/* Chat/Transcript Card */}
+                <Card className="flex flex-col overflow-hidden border-border/50 bg-card/30">
+                    <CardContent className="flex h-full flex-col p-0">
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                            {/* Pre-connect: Start button */}
+                            {!connected &&
+                                !isInterviewActive &&
+                                !preparingContext && (
+                                    <div className="flex h-full flex-col items-center justify-center">
+                                        <Bot className="mb-4 h-16 w-16 text-muted-foreground/30" />
+                                        <h2 className="text-lg font-semibold">
+                                            Ready to begin?
+                                        </h2>
+                                        <p className="mt-1 mb-6 text-sm text-muted-foreground text-center max-w-sm">
+                                            Click the button below to connect and
+                                            start your AI-powered interview. Make
+                                            sure your microphone is ready.
+                                        </p>
+                                        <Button
+                                            size="lg"
+                                            className="gap-2"
+                                            onClick={handleConnect}
+                                            disabled={connecting}
+                                        >
+                                            {connecting ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <Phone className="h-4 w-4" />
+                                            )}
+                                            {connecting
+                                                ? "Connecting..."
+                                                : "Start Interview"}
+                                        </Button>
+                                    </div>
+                                )}
+
+                            {/* Preparing context loading screen */}
+                            {preparingContext && (
                                 <div className="flex h-full flex-col items-center justify-center">
-                                    <Bot className="mb-4 h-16 w-16 text-muted-foreground/30" />
+                                    <div className="relative mb-6">
+                                        <div className="h-20 w-20 rounded-full border-4 border-primary/20" />
+                                        <div
+                                            className="absolute inset-0 h-20 w-20 animate-spin rounded-full border-4 border-transparent border-t-primary"
+                                            style={{ animationDuration: "1.5s" }}
+                                        />
+                                        <Bot className="absolute inset-0 m-auto h-8 w-8 text-primary" />
+                                    </div>
                                     <h2 className="text-lg font-semibold">
-                                        Ready to begin?
+                                        Preparing your interview...
                                     </h2>
-                                    <p className="mt-1 mb-6 text-sm text-muted-foreground text-center max-w-sm">
-                                        Click the button below to connect and
-                                        start your AI-powered interview. Make
-                                        sure your microphone is ready.
+                                    <p className="mt-2 text-sm text-muted-foreground text-center max-w-sm">
+                                        Setting up your interview environment.
+                                        Loading your profile, job details, and
+                                        generating interview questions.
                                     </p>
-                                    <Button
-                                        size="lg"
-                                        className="gap-2"
-                                        onClick={handleConnect}
-                                        disabled={connecting}
-                                    >
-                                        {connecting ? (
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                        ) : (
-                                            <Phone className="h-4 w-4" />
-                                        )}
-                                        {connecting
-                                            ? "Connecting..."
-                                            : "Start Interview"}
-                                    </Button>
+                                    <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                        {retryCount === 0
+                                            ? "Initializing connection..."
+                                            : retryCount === 1
+                                              ? "Loading interview context..."
+                                              : `Still preparing... (attempt ${retryCount})`}
+                                    </div>
                                 </div>
                             )}
 
-                        {/* Preparing context loading screen */}
-                        {preparingContext && (
-                            <div className="flex h-full flex-col items-center justify-center">
-                                <div className="relative mb-6">
-                                    <div className="h-20 w-20 rounded-full border-4 border-primary/20" />
-                                    <div
-                                        className="absolute inset-0 h-20 w-20 animate-spin rounded-full border-4 border-transparent border-t-primary"
-                                        style={{ animationDuration: "1.5s" }}
-                                    />
-                                    <Bot className="absolute inset-0 m-auto h-8 w-8 text-primary" />
-                                </div>
-                                <h2 className="text-lg font-semibold">
-                                    Preparing your interview...
-                                </h2>
-                                <p className="mt-2 text-sm text-muted-foreground text-center max-w-sm">
-                                    Setting up your interview environment.
-                                    Loading your profile, job details, and
-                                    generating interview questions.
-                                </p>
-                                <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                    {retryCount === 0
-                                        ? "Initializing connection..."
-                                        : retryCount === 1
-                                          ? "Loading interview context..."
-                                          : `Still preparing... (attempt ${retryCount})`}
-                                </div>
-                            </div>
-                        )}
+                            {messages.map((msg) => {
+                                const isStreamingThis = streamingMsgId === msg.id;
+                                const displayText = isStreamingThis
+                                    ? msg.text.slice(0, streamedLength)
+                                    : msg.text;
 
-                        {messages.map((msg) => {
-                            const isStreamingThis = streamingMsgId === msg.id;
-                            const displayText = isStreamingThis
-                                ? msg.text.slice(0, streamedLength)
-                                : msg.text;
-
-                            return (
-                                <div
-                                    key={msg.id}
-                                    className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
-                                >
+                                return (
                                     <div
-                                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
-                                            msg.role === "ai"
-                                                ? "bg-primary/10"
-                                                : "bg-muted"
-                                        }`}
+                                        key={msg.id}
+                                        className={`flex gap-3 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
                                     >
-                                        {msg.role === "ai" ? (
-                                            <Bot className="h-4 w-4 text-primary" />
-                                        ) : (
-                                            <User className="h-4 w-4" />
-                                        )}
+                                        <div
+                                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${
+                                                msg.role === "ai"
+                                                    ? "bg-primary/10"
+                                                    : "bg-muted"
+                                            }`}
+                                        >
+                                            {msg.role === "ai" ? (
+                                                <Bot className="h-4 w-4 text-primary" />
+                                            ) : (
+                                                <User className="h-4 w-4" />
+                                            )}
+                                        </div>
+                                        <div
+                                            className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                                                msg.role === "ai"
+                                                    ? "bg-muted text-foreground"
+                                                    : "bg-primary text-primary-foreground"
+                                            }`}
+                                        >
+                                            {displayText}
+                                            {isStreamingThis && (
+                                                <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-current align-middle" />
+                                            )}
+                                        </div>
                                     </div>
-                                    <div
-                                        className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                                            msg.role === "ai"
-                                                ? "bg-muted text-foreground"
-                                                : "bg-primary text-primary-foreground"
-                                        }`}
-                                    >
-                                        {displayText}
-                                        {isStreamingThis && (
-                                            <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-current align-middle" />
+                                );
+                            })}
+
+                            {/* Live transcript bubble while recording */}
+                            {isRecording && (
+                                <div className="flex gap-3 flex-row-reverse">
+                                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+                                        <Mic className="h-4 w-4 text-red-400 animate-pulse" />
+                                    </div>
+                                    <div className="max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed bg-primary/80 text-primary-foreground">
+                                        {liveTranscript || (
+                                            <span className="italic text-primary-foreground/60">
+                                                Listening...
+                                            </span>
                                         )}
+                                        <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-current align-middle" />
                                     </div>
                                 </div>
-                            );
-                        })}
-
-                        {/* Live transcript bubble while recording */}
-                        {isRecording && (
-                            <div className="flex gap-3 flex-row-reverse">
-                                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
-                                    <Mic className="h-4 w-4 text-red-400 animate-pulse" />
-                                </div>
-                                <div className="max-w-[75%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed bg-primary/80 text-primary-foreground">
-                                    {liveTranscript || (
-                                        <span className="italic text-primary-foreground/60">
-                                            Listening...
-                                        </span>
-                                    )}
-                                    <span className="ml-0.5 inline-block h-4 w-0.5 animate-pulse bg-current align-middle" />
-                                </div>
-                            </div>
-                        )}
-                        <div ref={messagesEndRef} />
-                    </div>
-
-                    {/* Controls */}
-                    {connected && (
-                        <div className="border-t border-border/50 p-4">
-                            <div className="flex items-center justify-center gap-4">
-                                {!isRecording ? (
-                                    <Button
-                                        size="lg"
-                                        className="h-14 w-14 rounded-full p-0"
-                                        onClick={startRecording}
-                                        disabled={
-                                            isAiSpeaking || !currentQuestionId
-                                        }
-                                    >
-                                        <Mic className="h-6 w-6" />
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        size="lg"
-                                        variant="destructive"
-                                        className="h-14 w-14 rounded-full p-0 animate-pulse"
-                                        onClick={stopRecording}
-                                    >
-                                        <MicOff className="h-6 w-6" />
-                                    </Button>
-                                )}
-                                <p className="text-xs text-muted-foreground">
-                                    {isAiSpeaking
-                                        ? "AI is speaking..."
-                                        : isRecording
-                                          ? "Recording... Click to stop"
-                                          : currentQuestionId
-                                            ? "Click to record your answer"
-                                            : "Waiting for question..."}
-                                </p>
-                            </div>
+                            )}
+                            <div ref={messagesEndRef} />
                         </div>
-                    )}
-                </CardContent>
-            </Card>
+
+                        {/* Controls */}
+                        {connected && (
+                            <div className="border-t border-border/50 p-4">
+                                <div className="flex items-center justify-center gap-4">
+                                    {!isRecording ? (
+                                        <Button
+                                            size="lg"
+                                            className="h-14 w-14 rounded-full p-0"
+                                            onClick={startRecording}
+                                            disabled={
+                                                isAiSpeaking || !currentQuestionId
+                                            }
+                                        >
+                                            <Mic className="h-6 w-6" />
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            size="lg"
+                                            variant="destructive"
+                                            className="h-14 w-14 rounded-full p-0 animate-pulse"
+                                            onClick={stopRecording}
+                                        >
+                                            <MicOff className="h-6 w-6" />
+                                        </Button>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">
+                                        {isAiSpeaking
+                                            ? "AI is speaking..."
+                                            : isRecording
+                                              ? "Recording... Click to stop"
+                                              : currentQuestionId
+                                                ? "Click to record your answer"
+                                                : "Waiting for question..."}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }
