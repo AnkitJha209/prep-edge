@@ -53,12 +53,14 @@ export default function RecruiterJobs() {
     });
 
     return (
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-            <div className="mb-8 flex items-center justify-between">
+        <div className="page-shell">
+            <div className="mb-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold">My Jobs</h1>
-                    <p className="mt-1 text-muted-foreground">
-                        Manage your posted jobs
+                    <span className="editorial-kicker">Job Management</span>
+                    <h1 className="page-heading mt-5">My Jobs</h1>
+                    <p className="page-subtle mt-3 max-w-2xl">
+                        Manage open roles, review status, and keep listings in
+                        sync with your screening workflow.
                     </p>
                 </div>
                 <Link to="/recruiter/jobs/create">
@@ -77,10 +79,7 @@ export default function RecruiterJobs() {
             ) : jobs && jobs.length > 0 ? (
                 <div className="grid gap-4">
                     {jobs.map((job) => (
-                        <Card
-                            key={job.id}
-                            className="border-border/50 bg-card/50"
-                        >
+                        <Card key={job.id}>
                             <CardContent className="flex items-center justify-between p-5">
                                 <div className="flex items-center gap-4">
                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
@@ -156,7 +155,7 @@ export default function RecruiterJobs() {
                     ))}
                 </div>
             ) : (
-                <Card className="border-border/50 bg-card/30">
+                <Card>
                     <CardContent className="flex flex-col items-center justify-center py-16">
                         <Briefcase className="mb-3 h-10 w-10 text-muted-foreground/50" />
                         <p className="text-muted-foreground">

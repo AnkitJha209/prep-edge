@@ -52,21 +52,24 @@ export default function JobDetail() {
     };
 
     return (
-        <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+        <div className="page-shell max-w-5xl">
             <Link
                 to="/jobs"
-                className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
                 <ArrowLeft className="h-3.5 w-3.5" /> Back to Jobs
             </Link>
 
-            <Card className="border-border/50 bg-card/50">
+            <Card>
                 <CardHeader>
                     <div className="flex items-start gap-4">
-                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+                        <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.35rem] bg-primary/12">
                             <Briefcase className="h-7 w-7 text-primary" />
                         </div>
                         <div className="flex-1">
+                            <span className="editorial-kicker mb-4">
+                                Role Detail
+                            </span>
                             <CardTitle className="text-2xl">
                                 {job.title}
                             </CardTitle>

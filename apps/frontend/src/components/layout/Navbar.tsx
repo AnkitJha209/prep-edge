@@ -24,22 +24,27 @@ export default function Navbar() {
     };
 
     return (
-        <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-            <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+        <header className="sticky top-0 z-50 px-4 pt-4 sm:px-6">
+            <div className="glass-panel mx-auto flex max-w-7xl items-center justify-between rounded-full px-4 py-3 sm:px-5">
                 <Link
                     to="/"
-                    className="flex items-center gap-2 transition-opacity hover:opacity-80"
+                    className="flex items-center gap-3 transition-opacity hover:opacity-80"
                 >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-                        <Sparkles className="h-4 w-4 text-primary-foreground" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-primary/30 bg-primary/18 text-primary shadow-[0_10px_30px_-20px_rgba(88,110,255,0.9)]">
+                        <Sparkles className="h-4 w-4" />
                     </div>
-                    <span className="text-lg font-bold tracking-tight">
-                        PrepEdge
-                    </span>
+                    <div>
+                        <span className="block text-base font-extrabold tracking-tight sm:text-lg">
+                            PrepEdge
+                        </span>
+                        <span className="hidden font-mono text-[0.62rem] uppercase tracking-[0.24em] text-muted-foreground sm:block">
+                            Interview Intelligence
+                        </span>
+                    </div>
                 </Link>
 
                 {/* Desktop nav */}
-                <nav className="hidden items-center gap-1 md:flex">
+                <nav className="hidden items-center gap-2 md:flex">
                     <Link to="/jobs">
                         <Button variant="ghost" size="sm">
                             Browse Jobs
@@ -111,7 +116,7 @@ export default function Navbar() {
 
                 {/* Mobile hamburger */}
                 <button
-                    className="md:hidden"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-border/70 bg-white/[0.04] text-foreground md:hidden"
                     onClick={() => setMobileOpen(!mobileOpen)}
                 >
                     {mobileOpen ? (
@@ -124,7 +129,7 @@ export default function Navbar() {
 
             {/* Mobile menu */}
             {mobileOpen && (
-                <div className="border-t border-border/50 bg-background px-4 pb-4 pt-2 md:hidden">
+                <div className="glass-panel mx-auto mt-3 max-w-7xl rounded-[1.75rem] px-4 pb-4 pt-3 md:hidden">
                     <div className="flex flex-col gap-2">
                         <Link to="/jobs" onClick={() => setMobileOpen(false)}>
                             <Button

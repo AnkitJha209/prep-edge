@@ -27,11 +27,13 @@ export default function CandidateDashboard() {
     if (isLoading) return <DashboardSkeleton />;
 
     return (
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold">Candidate Dashboard</h1>
-                <p className="mt-1 text-muted-foreground">
-                    Track your applications and interview progress
+        <div className="page-shell">
+            <div className="mb-10">
+                <span className="editorial-kicker">Candidate View</span>
+                <h1 className="page-heading mt-5">Candidate Dashboard</h1>
+                <p className="page-subtle mt-3 max-w-2xl">
+                    Track applications, interview activity, and how your resume
+                    signal is trending over time.
                 </p>
             </div>
 
@@ -60,7 +62,7 @@ export default function CandidateDashboard() {
 
             {/* Recent Applications */}
             <div className="mt-10">
-                <div className="flex items-center justify-between mb-4">
+                <div className="mb-4 flex items-center justify-between">
                     <h2 className="text-xl font-semibold">
                         Recent Applications
                     </h2>
@@ -75,10 +77,7 @@ export default function CandidateDashboard() {
                 data.recentApplications.length > 0 ? (
                     <div className="grid gap-3">
                         {data.recentApplications.map((app) => (
-                            <Card
-                                key={app.id}
-                                className="border-border/50 bg-card/50"
-                            >
+                            <Card key={app.id}>
                                 <CardContent className="flex items-center justify-between p-4">
                                     <div className="flex items-center gap-4">
                                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
@@ -118,7 +117,7 @@ export default function CandidateDashboard() {
                         ))}
                     </div>
                 ) : (
-                    <Card className="border-border/50 bg-card/30">
+                    <Card>
                         <CardContent className="flex flex-col items-center justify-center py-12">
                             <FileText className="mb-3 h-10 w-10 text-muted-foreground/50" />
                             <p className="text-muted-foreground">
@@ -147,15 +146,17 @@ function StatCard({
     value: string | number;
 }) {
     return (
-        <Card className="border-border/50 bg-card/50">
+        <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                     {label}
                 </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.04] text-primary">
+                    <Icon className="h-4 w-4" />
+                </div>
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">{value}</div>
+                <div className="text-3xl font-bold">{value}</div>
             </CardContent>
         </Card>
     );
@@ -177,7 +178,7 @@ function StatusBadge({ status }: { status: string }) {
 
 function DashboardSkeleton() {
     return (
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        <div className="page-shell">
             <Skeleton className="mb-2 h-8 w-64" />
             <Skeleton className="mb-8 h-4 w-48" />
             <div className="grid gap-4 sm:grid-cols-3">

@@ -37,22 +37,24 @@ export default function Jobs() {
     );
 
     return (
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold">Browse Jobs</h1>
-                <p className="mt-1 text-muted-foreground">
-                    Find your next opportunity
+        <div className="page-shell">
+            <div className="mb-10">
+                <span className="editorial-kicker">Open Roles</span>
+                <h1 className="page-heading mt-5">Browse Jobs</h1>
+                <p className="page-subtle mt-3 max-w-2xl">
+                    Explore active opportunities, review requirements, and move
+                    straight into the PrepEdge application flow.
                 </p>
             </div>
 
             {/* Search */}
-            <div className="relative mb-8 max-w-md">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <div className="relative mb-8 max-w-xl">
+                <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                     placeholder="Search by title, description, or location..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-9"
+                    className="pl-11"
                 />
             </div>
 
@@ -70,7 +72,7 @@ export default function Jobs() {
                             to={`/jobs/${job.id}`}
                             state={{ job }}
                         >
-                            <Card className="border-border/50 bg-card/50 transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
+                            <Card className="transition-all hover:-translate-y-0.5 hover:border-white/20">
                                 <CardContent className="p-5">
                                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                                         <div className="flex gap-4">
@@ -154,7 +156,7 @@ export default function Jobs() {
                     ))}
                 </div>
             ) : (
-                <Card className="border-border/50 bg-card/30">
+                <Card>
                     <CardContent className="flex flex-col items-center justify-center py-16">
                         <Briefcase className="mb-3 h-10 w-10 text-muted-foreground/50" />
                         <p className="text-muted-foreground">

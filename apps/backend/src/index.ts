@@ -49,7 +49,7 @@ app.post("/tts", async (req: Request, res: ExResponse) => {
                 outputFormat: "mp3_44100_128",
             },
         );
-
+        console.log("N8N Reached ElevenLabs TTS endpoint successfully");
         const arrayBuffer = await new Response(audioStream).arrayBuffer();
         const audioBuffer = Buffer.from(arrayBuffer);
 

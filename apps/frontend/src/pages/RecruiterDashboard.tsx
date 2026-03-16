@@ -25,7 +25,7 @@ export default function RecruiterDashboard() {
 
     if (isLoading) {
         return (
-            <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+            <div className="page-shell">
                 <Skeleton className="mb-2 h-8 w-64" />
                 <Skeleton className="mb-8 h-4 w-48" />
                 <div className="grid gap-4 sm:grid-cols-4">
@@ -38,12 +38,14 @@ export default function RecruiterDashboard() {
     }
 
     return (
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-            <div className="mb-8 flex items-center justify-between">
+        <div className="page-shell">
+            <div className="mb-10 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold">Recruiter Dashboard</h1>
-                    <p className="mt-1 text-muted-foreground">
-                        Manage your jobs and review candidates
+                    <span className="editorial-kicker">Recruiter View</span>
+                    <h1 className="page-heading mt-5">Recruiter Dashboard</h1>
+                    <p className="page-subtle mt-3 max-w-2xl">
+                        Manage active roles, review candidate signal, and keep
+                        your screening workflow moving.
                     </p>
                 </div>
                 <Link to="/recruiter/jobs/create">
@@ -90,10 +92,7 @@ export default function RecruiterDashboard() {
                 {data?.topCandidates && data.topCandidates.length > 0 ? (
                     <div className="grid gap-3">
                         {data.topCandidates.map((c) => (
-                            <Card
-                                key={c.id}
-                                className="border-border/50 bg-card/50"
-                            >
+                            <Card key={c.id}>
                                 <CardContent className="flex items-center justify-between p-4">
                                     <div className="flex items-center gap-4">
                                         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -124,7 +123,7 @@ export default function RecruiterDashboard() {
                         ))}
                     </div>
                 ) : (
-                    <Card className="border-border/50 bg-card/30">
+                    <Card>
                         <CardContent className="flex flex-col items-center justify-center py-12">
                             <Users className="mb-3 h-10 w-10 text-muted-foreground/50" />
                             <p className="text-muted-foreground">
@@ -148,15 +147,17 @@ function StatCard({
     value: number;
 }) {
     return (
-        <Card className="border-border/50 bg-card/50">
+        <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                     {label}
                 </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.04] text-primary">
+                    <Icon className="h-4 w-4" />
+                </div>
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">{value}</div>
+                <div className="text-3xl font-bold">{value}</div>
             </CardContent>
         </Card>
     );

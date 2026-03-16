@@ -24,7 +24,7 @@ export default function AdminDashboard() {
 
     if (isLoading) {
         return (
-            <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+            <div className="page-shell">
                 <Skeleton className="mb-2 h-8 w-64" />
                 <Skeleton className="mb-8 h-4 w-48" />
                 <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
@@ -37,13 +37,14 @@ export default function AdminDashboard() {
     }
 
     return (
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-            <div className="mb-8">
-                <div className="flex items-center gap-2">
+        <div className="page-shell">
+            <div className="mb-10">
+                <span className="editorial-kicker">Platform Overview</span>
+                <div className="mt-5 flex items-center gap-3">
                     <Shield className="h-6 w-6 text-primary" />
-                    <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+                    <h1 className="page-heading">Admin Dashboard</h1>
                 </div>
-                <p className="mt-1 text-muted-foreground">
+                <p className="page-subtle mt-3 max-w-2xl">
                     Platform-wide overview
                 </p>
             </div>
@@ -87,10 +88,7 @@ export default function AdminDashboard() {
                 {data?.recentUsers && data.recentUsers.length > 0 ? (
                     <div className="grid gap-3">
                         {data.recentUsers.map((u) => (
-                            <Card
-                                key={u.id}
-                                className="border-border/50 bg-card/50"
-                            >
+                            <Card key={u.id}>
                                 <CardContent className="flex items-center justify-between p-4">
                                     <div className="flex items-center gap-3">
                                         <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
@@ -133,15 +131,17 @@ function StatCard({
     value: number;
 }) {
     return (
-        <Card className="border-border/50 bg-card/50">
+        <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                     {label}
                 </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.04] text-primary">
+                    <Icon className="h-4 w-4" />
+                </div>
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold">{value}</div>
+                <div className="text-3xl font-bold">{value}</div>
             </CardContent>
         </Card>
     );

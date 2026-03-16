@@ -40,7 +40,7 @@ export default function InterviewReport() {
 
     if (isLoading) {
         return (
-            <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+            <div className="page-shell max-w-4xl">
                 <Skeleton className="mb-6 h-6 w-32" />
                 <Skeleton className="mb-4 h-8 w-64" />
                 <Skeleton className="h-64 rounded-xl" />
@@ -50,7 +50,7 @@ export default function InterviewReport() {
 
     if (error || !report) {
         return (
-            <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+            <div className="page-shell max-w-4xl text-center">
                 <p className="text-muted-foreground">
                     Report not found or you don&apos;t have access.
                 </p>
@@ -72,18 +72,21 @@ export default function InterviewReport() {
               : "text-destructive";
 
     return (
-        <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+        <div className="page-shell max-w-4xl">
             <Link
                 to="/dashboard"
-                className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
                 <ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard
             </Link>
 
-            <Card className="border-border/50 bg-card/50">
+            <Card>
                 <CardHeader>
                     <div className="flex items-start justify-between">
                         <div>
+                            <span className="editorial-kicker mb-4">
+                                Interview Summary
+                            </span>
                             <CardTitle className="flex items-center gap-2 text-2xl">
                                 <FileText className="h-6 w-6 text-primary" />
                                 Interview Report

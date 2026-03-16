@@ -59,17 +59,20 @@ export default function CreateJob() {
     });
 
     return (
-        <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
+        <div className="page-shell max-w-3xl">
             <Link
                 to="/recruiter/jobs"
-                className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+                className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
             >
                 <ArrowLeft className="h-3.5 w-3.5" /> Back to My Jobs
             </Link>
 
-            <Card className="border-border/50 bg-card/50">
+            <Card>
                 <CardHeader>
-                    <CardTitle>Post a New Job</CardTitle>
+                    <span className="editorial-kicker w-fit">New Listing</span>
+                    <CardTitle className="mt-3 text-3xl">
+                        Post a New Job
+                    </CardTitle>
                     <CardDescription>
                         Fill in the details to create a new job listing
                     </CardDescription>
