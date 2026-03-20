@@ -10,10 +10,32 @@ export const handleUserAnswer = async (
     jobData: any,
     application: any,
     ws: any,
+    shouldStop?: () => boolean,
 ) => {
-    console.log("Reached handleUserAnswer")
+    if (shouldStop?.()) {
+        return;
+    }
+
+    console.log("Reached handleUserAnswer");
     const answerText = await speechToText(audioBuffer);
-    console.log(answerText)
+
+    if (shouldStop?.()) {
+        return;
+    }
+
+    console.log(answerText);
+
+    await client.interviewQuestion.update({
+        where: { id: questionId },
+        data: {
+            answerText,
+        },
+    });
+
+    if (shouldStop?.()) {
+        return;
+    }
+
     const { feedback, nextQuestion } = await evaluateAnswerAndGenerateNext(
         answerText,
         jobData,
@@ -25,10 +47,13 @@ export const handleUserAnswer = async (
     await client.interviewQuestion.update({
         where: { id: questionId },
         data: {
-            answerText,
             aiEvaluation: feedback,
         },
     });
+
+    if (shouldStop?.()) {
+        return;
+    }
 
     const newQuestionId = await saveToDB(nextQuestion, interviewId);
     const speech = await textToSpeech(nextQuestion);

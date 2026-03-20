@@ -174,6 +174,21 @@ export interface RecruiterDashboard {
         candidate: { firstName: string; lastName: string; email: string };
         job: { title: string };
     })[];
+    interviewReports: (InterviewReport & {
+        interview: {
+            candidate: { firstName: string; lastName: string; email: string };
+            application: { job: { title: string } };
+        };
+    })[];
+    interviewedCandidates: (Interview & {
+        candidate: { firstName: string; lastName: string; email: string };
+        application: { job: { title: string } };
+        report: {
+            id: string;
+            overallScore?: number | null;
+            createdAt: string;
+        } | null;
+    })[];
 }
 
 export interface AdminDashboard {
@@ -205,5 +220,9 @@ export type WSServerMessage =
           audioIncoming: boolean;
       }
     | { type: "AI_MESSAGE_END"; questionId: string }
-    | { type: "INTERVIEW_ENDED"; message: string }
+    | {
+          reportId: any;
+          type: "INTERVIEW_ENDED";
+          message: string;
+      }
     | { type: "ERROR"; message: string };

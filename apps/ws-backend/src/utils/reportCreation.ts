@@ -9,8 +9,9 @@ export const createReport = async (
     try {
         const interview = await client.interview.update({
             where: { id: interviewId },
-            data:{
-                status: "COMPLETED"
+            data: {
+                status: "COMPLETED",
+                completedAt: new Date(),
             },
             include: {
                 application: true,
@@ -24,9 +25,17 @@ export const createReport = async (
 
         const report = await analyzeInterview(interview, jobData, userData);
 
-        const savedReport = await client.interviewReport.create({
-            data: {
+        const savedReport = await client.interviewReport.upsert({
+            where: { interviewId },
+            create: {
                 interviewId,
+                summary: report.summary,
+                strengths: report.strengths,
+                weaknesses: report.weaknesses,
+                overallScore: report.overallScore,
+                aiRecommendation: report.aiRecommendation,
+            },
+            update: {
                 summary: report.summary,
                 strengths: report.strengths,
                 weaknesses: report.weaknesses,

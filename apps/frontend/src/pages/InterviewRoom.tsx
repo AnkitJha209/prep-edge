@@ -53,12 +53,13 @@ export default function InterviewRoom() {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const contextReadyRef = useRef(false);
+    const isEndingRef = useRef(false);
     const [connecting, setConnecting] = useState(false);
     const [connected, setConnected] = useState(false);
     const [preparingContext, setPreparingContext] = useState(false);
+    const [isEnding, setIsEnding] = useState(false);
     const [retryCount, setRetryCount] = useState(0);
-    const [timeLeft, setTimeLeft] = useState(180);
-    
+    const [timeLeft, setTimeLeft] = useState(300);
 
     // Streaming typewriter state
     const [streamingMsgId, setStreamingMsgId] = useState<string | null>(null);
@@ -74,10 +75,12 @@ export default function InterviewRoom() {
     const isRecordingRef = useRef(false);
     const accumulatedTranscriptRef = useRef("");
 
-    // Auto-scroll messages
+    // Auto-scroll messages - only on new messages, not stream updates
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, [messages, streamedLength, liveTranscript]);
+        if (streamingMsgId === null) {
+            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [messages, streamingMsgId]);
 
     // Cleanup on unmount
     useEffect(() => {
@@ -91,24 +94,38 @@ export default function InterviewRoom() {
         };
     }, [dispatch]);
 
-    // Free tier timer (3 minutes)
-useEffect(() => {
-    if (!isInterviewActive) return;
+    const handleEndInterview = useCallback(() => {
+        if (isEndingRef.current) return;
 
-    const timer = setInterval(() => {
-        setTimeLeft((prev) => {
-            if (prev <= 1) {
-                handleEndInterview();
-                toast.warning("Interview time limit reached");
-                return 0;
-            }
-            return prev - 1;
-        });
-    }, 1000);
+        isEndingRef.current = true;
+        setIsEnding(true);
 
-    return () => clearInterval(timer);
-}, [isInterviewActive]);
+        if (isRecording) {
+            mediaRecorderRef.current?.stop();
+        }
 
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({ type: "END_INTERVIEW" }));
+        }
+    }, [isRecording]);
+
+    // Interview timer (5 minutes)
+    useEffect(() => {
+        if (!isInterviewActive || isEnding) return;
+
+        const timer = setInterval(() => {
+            setTimeLeft((prev) => {
+                if (prev <= 1) {
+                    handleEndInterview();
+                    toast.warning("Interview time limit reached");
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [isInterviewActive, isEnding, handleEndInterview]);
 
     const playAudioBuffer = useCallback(async (buffer: ArrayBuffer) => {
         try {
@@ -219,6 +236,10 @@ useEffect(() => {
 
                 switch (msg.type) {
                     case "AI_MESSAGE_START": {
+                        if (isEndingRef.current) {
+                            return;
+                        }
+
                         // Context was ready – server responded with first question
                         if (!contextReadyRef.current) {
                             contextReadyRef.current = true;
@@ -244,12 +265,17 @@ useEffect(() => {
                         break;
                     case "INTERVIEW_ENDED":
                         dispatch(endInterview());
+                        isEndingRef.current = true;
                         setConnected(false);
                         setPreparingContext(false);
+                        setIsEnding(false);
                         toast.success(
                             "Interview completed! Redirecting to dashboard...",
                         );
-                        setTimeout(() => navigate("/dashboard"), 2000);
+                        setTimeout(
+                            () => navigate(`/report/${msg.reportId}`),
+                            3500,
+                        );
                         break;
                     case "ERROR":
                         // If context not ready, schedule a retry
@@ -434,38 +460,33 @@ useEffect(() => {
     }, [currentQuestionId, dispatch]);
 
     const toggleCamera = async () => {
-    if (cameraOn) {
-        cameraStreamRef.current?.getTracks().forEach(t => t.stop());
-        cameraStreamRef.current = null;
-        setCameraOn(false);
-        return;
-    }
-
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-        });
-
-        cameraStreamRef.current = stream;
-
-        if (videoRef.current) {
-            videoRef.current.srcObject = stream;
+        if (cameraOn) {
+            cameraStreamRef.current?.getTracks().forEach((t) => t.stop());
+            cameraStreamRef.current = null;
+            setCameraOn(false);
+            return;
         }
 
-        setCameraOn(true);
-    } catch {
-        toast.error("Camera access denied");
-    }
-};
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+            });
+
+            cameraStreamRef.current = stream;
+
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+            }
+
+            setCameraOn(true);
+        } catch {
+            toast.error("Camera access denied");
+        }
+    };
 
     const stopRecording = useCallback(() => {
+        if (isEndingRef.current) return;
         mediaRecorderRef.current?.stop();
-    }, []);
-
-    const handleEndInterview = useCallback(() => {
-        if (wsRef.current?.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify({ type: "END_INTERVIEW" }));
-        }
     }, []);
 
     if (!interviewToken) {
@@ -488,11 +509,11 @@ useEffect(() => {
 
     return (
         <div
-            className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 sm:px-6"
+            className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-6 sm:px-6 overflow-hidden"
             style={{ height: "calc(100vh - 4rem)" }}
         >
-            {/* Header */}
-            <div className="flex shrink-0 items-center justify-between">
+            {/* Header - Sticky */}
+            <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 pb-2">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                         <Bot className="h-5 w-5 text-primary" />
@@ -506,11 +527,13 @@ useEffect(() => {
                             >
                                 {preparingContext
                                     ? "Preparing..."
-                                    : connected
-                                      ? "Live"
-                                      : "Disconnected"}
+                                    : isEnding
+                                      ? "Ending..."
+                                      : connected
+                                        ? "Live"
+                                        : "Disconnected"}
                             </Badge>
-                             <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-xs">
                                 {Math.floor(timeLeft / 60)}:
                                 {String(timeLeft % 60).padStart(2, "0")}
                             </Badge>
@@ -532,6 +555,7 @@ useEffect(() => {
                         size="sm"
                         className="gap-2"
                         onClick={handleEndInterview}
+                        disabled={isEnding}
                     >
                         <PhoneOff className="h-4 w-4" /> End Interview
                     </Button>
@@ -539,9 +563,9 @@ useEffect(() => {
             </div>
 
             {/* Main Layout Grid */}
-            <div className="grid flex-1 grid-cols-1 gap-4 overflow-y-auto md:grid-cols-3">
+            <div className="grid flex-1 grid-cols-1 gap-4 overflow-hidden md:grid-cols-3">
                 {/* AI Avatar Card */}
-                <Card className="flex flex-col items-center justify-center border-border/50 bg-card/30 p-6">
+                <Card className="flex flex-col items-center justify-center border-border/50 bg-card/30 p-6 overflow-hidden">
                     <div className="flex h-48 w-48 items-center justify-center rounded-full bg-muted shadow-inner">
                         <Bot className="h-24 w-24 text-primary" />
                     </div>
@@ -549,7 +573,7 @@ useEffect(() => {
                 </Card>
 
                 {/* Candidate Camera Card */}
-                <Card className="flex flex-col items-center justify-center border-border/50 bg-card/30 p-6">
+                <Card className="flex flex-col items-center justify-center border-border/50 bg-card/30 p-6 overflow-hidden">
                     <div className="relative aspect-video w-full overflow-hidden rounded-xl bg-black shadow-inner ring-1 ring-border/50">
                         <video
                             ref={videoRef}
@@ -574,7 +598,7 @@ useEffect(() => {
                 </Card>
 
                 {/* Chat/Transcript Card */}
-                <Card className="flex flex-col overflow-hidden border-border/50 bg-card/30">
+                <Card className="flex flex-col overflow-hidden border-border/50 bg-card/30 min-h-0">
                     <CardContent className="flex h-full flex-col p-0">
                         <div className="flex-1 overflow-y-auto p-4 space-y-4">
                             {/* Pre-connect: Start button */}
@@ -587,9 +611,9 @@ useEffect(() => {
                                             Ready to begin?
                                         </h2>
                                         <p className="mt-1 mb-6 text-sm text-muted-foreground text-center max-w-sm">
-                                            Click the button below to connect and
-                                            start your AI-powered interview. Make
-                                            sure your microphone is ready.
+                                            Click the button below to connect
+                                            and start your AI-powered interview.
+                                            Make sure your microphone is ready.
                                         </p>
                                         <Button
                                             size="lg"
@@ -616,7 +640,9 @@ useEffect(() => {
                                         <div className="h-20 w-20 rounded-full border-4 border-primary/20" />
                                         <div
                                             className="absolute inset-0 h-20 w-20 animate-spin rounded-full border-4 border-transparent border-t-primary"
-                                            style={{ animationDuration: "1.5s" }}
+                                            style={{
+                                                animationDuration: "1.5s",
+                                            }}
                                         />
                                         <Bot className="absolute inset-0 m-auto h-8 w-8 text-primary" />
                                     </div>
@@ -640,7 +666,8 @@ useEffect(() => {
                             )}
 
                             {messages.map((msg) => {
-                                const isStreamingThis = streamingMsgId === msg.id;
+                                const isStreamingThis =
+                                    streamingMsgId === msg.id;
                                 const displayText = isStreamingThis
                                     ? msg.text.slice(0, streamedLength)
                                     : msg.text;
@@ -708,7 +735,9 @@ useEffect(() => {
                                             className="h-14 w-14 rounded-full p-0"
                                             onClick={startRecording}
                                             disabled={
-                                                isAiSpeaking || !currentQuestionId
+                                                isEnding ||
+                                                isAiSpeaking ||
+                                                !currentQuestionId
                                             }
                                         >
                                             <Mic className="h-6 w-6" />

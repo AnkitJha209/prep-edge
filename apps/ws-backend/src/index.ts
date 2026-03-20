@@ -17,6 +17,7 @@ wss.on("connection", (ws, request) => {
     console.log("✅ New WS connection");
 
     let currentQuestionId: string | null = null;
+    let isInterviewEnding = false;
     let userData: any = null;
     let jobData: any = null;
     let interviewData: any = null;
@@ -80,6 +81,11 @@ wss.on("connection", (ws, request) => {
     ws.on("message", async (data: WebSocket.RawData, isBinary: boolean) => {
         try {
             if (isBinary) {
+                if (isInterviewEnding) {
+                    console.log("Ignoring audio because interview is ending");
+                    return;
+                }
+
                 if (!currentQuestionId) {
                     console.warn(
                         "Audio received but no currentQuestionId set, ignoring.",
@@ -108,6 +114,7 @@ wss.on("connection", (ws, request) => {
                     jobData,
                     interviewData?.application,
                     ws,
+                    () => isInterviewEnding,
                 );
 
                 currentQuestionId = null;
@@ -126,6 +133,10 @@ wss.on("connection", (ws, request) => {
             console.log("📩 Payload received:", payload);
 
             if (payload.type === "Start_Interview") {
+                if (isInterviewEnding) {
+                    return;
+                }
+
                 if (!userData || !jobData || !interviewData) {
                     console.log("Context not ready yet");
                     ws.send(
@@ -168,6 +179,10 @@ wss.on("connection", (ws, request) => {
                     }),
                 );
             } else if (payload.type === "ANSWER_FROM_USER") {
+                if (isInterviewEnding) {
+                    return;
+                }
+
                 if (!payload.questionId) {
                     console.warn("ANSWER_FROM_USER missing questionId");
                     return;
@@ -178,12 +193,20 @@ wss.on("connection", (ws, request) => {
             } else if (payload.type === "END_INTERVIEW") {
                 console.log("Ending interview...");
 
-                await createReport(interviewId, jobData, userData);
+                if (isInterviewEnding) {
+                    return;
+                }
+
+                isInterviewEnding = true;
+                currentQuestionId = null;
+
+                const data = await createReport(interviewId, jobData, userData);
 
                 ws.send(
                     JSON.stringify({
                         type: "INTERVIEW_ENDED",
                         message: "Report created successfully.",
+                        reportId: data.id,
                     }),
                 );
 
@@ -200,10 +223,23 @@ wss.on("connection", (ws, request) => {
         console.log("User disconnected");
 
         if (interviewId) {
-            await client.interview.update({
+            const interview = await client.interview.findUnique({
                 where: { id: interviewId },
-                data: { status: "CANCELLED" },
+                select: { status: true },
             });
+
+            if (
+                interview &&
+                interview.status !== "COMPLETED" &&
+                interview.status !== "REVIEWED" &&
+                interview.status !== "ACCEPTED" &&
+                interview.status !== "REJECTED"
+            ) {
+                await client.interview.update({
+                    where: { id: interviewId },
+                    data: { status: "CANCELLED" },
+                });
+            }
         }
     });
 

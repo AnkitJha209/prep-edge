@@ -10,6 +10,7 @@ import {
     Users,
     TrendingUp,
     ArrowRight,
+    ExternalLink,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -133,6 +134,89 @@ export default function RecruiterDashboard() {
                     </Card>
                 )}
             </div>
+
+            {/* Interview Reports */}
+            <div className="mt-10">
+                <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-xl font-semibold">Interview Reports</h2>
+                    <p className="text-sm text-muted-foreground">
+                        Candidates who completed interviews for your jobs
+                    </p>
+                </div>
+
+                {data?.interviewedCandidates &&
+                data.interviewedCandidates.length > 0 ? (
+                    <div className="grid gap-3">
+                        {data.interviewedCandidates.map((entry) => (
+                            <Card key={entry.id}>
+                                <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                                    <div>
+                                        <p className="font-medium">
+                                            {entry.candidate.firstName}{" "}
+                                            {entry.candidate.lastName}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {entry.candidate.email}
+                                        </p>
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                            {entry.application.job.title}
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-right">
+                                            <p className="font-semibold text-primary">
+                                                {entry.report?.overallScore !=
+                                                null
+                                                    ? `${Math.round(entry.report.overallScore)}%`
+                                                    : "N/A"}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {new Date(
+                                                    entry.report?.createdAt ??
+                                                        entry.updatedAt,
+                                                ).toLocaleDateString()}
+                                            </p>
+                                        </div>
+
+                                        {entry.report ? (
+                                            <Link
+                                                to={`/report/${entry.report.id}`}
+                                            >
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="gap-1.5"
+                                                >
+                                                    View Report
+                                                    <ExternalLink className="h-3.5 w-3.5" />
+                                                </Button>
+                                            </Link>
+                                        ) : (
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                disabled
+                                            >
+                                                Report pending
+                                            </Button>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                ) : (
+                    <Card>
+                        <CardContent className="flex flex-col items-center justify-center py-12">
+                            <FileText className="mb-3 h-10 w-10 text-muted-foreground/50" />
+                            <p className="text-muted-foreground">
+                                No interview reports available yet
+                            </p>
+                        </CardContent>
+                    </Card>
+                )}
+            </div>
         </div>
     );
 }
@@ -152,7 +236,7 @@ function StatCard({
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                     {label}
                 </CardTitle>
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/[0.04] text-primary">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/4 text-primary">
                     <Icon className="h-4 w-4" />
                 </div>
             </CardHeader>
